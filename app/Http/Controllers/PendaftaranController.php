@@ -13,22 +13,42 @@ use App\Models\KajianAwal;
 
 class PendaftaranController extends Controller
 {
-    public function index(Request $request)
-    {
-        // Ambil query builder untuk Pendaftaran, termasuk relasi pasien & dokter
-        $query = Pendaftaran::with(['pasien', 'dokter']);
 
-        // Jika parameter ?tanggal=... di request, tambahkan filter
-        if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_registrasi', $request->tanggal);
+    public function tidakHadir(Request $request)
+    {
+        $pendaftaran = Pendaftaran::find($request->id);
+        if ($pendaftaran) {
+            $pendaftaran->status = 'Tidak Hadir';
+            $pendaftaran->save();
+
+            return response()->json(['success' => true]);
         }
 
-        // Ambil data dengan pagination
-        $pendaftarans = $query->orderBy('tanggal_registrasi', 'desc')->paginate(10);
-
-        // Kirim data ke view
-        return view('admin.pendaftaran', compact('pendaftarans'));
+        return response()->json(['success' => false], 404);
     }
+
+
+
+
+public function index(Request $request)
+{
+    // Eager load relasi dan exclude status "Selesai"
+    $query = Pendaftaran::with(['pasien', 'dokter'])
+        ->where('status', '<>', 'Selesai');
+
+    // Filter tanggal jika ada ?tanggal=YYYY-MM-DD
+    $query->when($request->filled('tanggal'), function ($q) use ($request) {
+        $q->whereDate('tanggal_registrasi', $request->tanggal);
+    });
+
+    // Ambil data (urut terbaru) + pagination, pertahankan query string
+    $pendaftarans = $query->orderByDesc('tanggal_registrasi')
+        ->paginate(10)
+        ->withQueryString();
+
+    return view('admin.pendaftaran', compact('pendaftarans'));
+}
+
     // API untuk mendapatkan dokter berdasarkan spesialis
     public function getDokterBySpesialis($spesialis)
     {

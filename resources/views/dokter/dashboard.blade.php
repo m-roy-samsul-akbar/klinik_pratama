@@ -1,3 +1,10 @@
+@php
+    $pasien = App\Models\Pasien::count();
+    $pasienHariIni = App\Models\Pendaftaran::where('tanggal_registrasi' , date('Y-m-d'))->count();
+    $pasienAntrian = App\Models\Pendaftaran::where('tanggal_registrasi' , date('Y-m-d'))->where('status', 'Dalam Perawatan')->count();
+
+@endphp
+
 @extends('layouts.dokter')
 
 @section('title', 'Dashboard Dokter')
@@ -7,7 +14,7 @@
     <div class="col-md-12 grid-margin">
         <div class="row">
             <div class="col-12 col-xl-8 mb-4 mb-xl-0">
-                <h3 class="font-weight-bold">Selamat Datang, Dr. {{ Auth::user()->name }}</h3>
+                <h3 class="font-weight-bold">Selamat Datang, {{ Auth::user()->name }}</h3>
                 <h6 class="font-weight-normal mb-0">
                     Dashboard Dokter - <span class="text-primary" id="jumlahAntrian">5 pasien menunggu!</span>
                 </h6>
@@ -39,7 +46,7 @@
                 <div class="card card-tale">
                     <div class="card-body">
                         <p class="mb-4">Pasien Hari Ini</p>
-                        <p class="fs-30 mb-2" id="jumlahHariIni">0</p>
+                        <p class="fs-30 mb-2" id="jumlahHariIni">{{ $pasienHariIni }}</p>
                         <p>Pasien</p>
                     </div>
                 </div>
@@ -48,7 +55,7 @@
                 <div class="card card-dark-blue">
                     <div class="card-body">
                         <p class="mb-4">Total Pasien</p>
-                        <p class="fs-30 mb-2" id="jumlahBulanIni">0</p>
+                        <p class="fs-30 mb-2" id="jumlahBulanIni">{{ $pasien }}</p>
                         <p>Pasien</p>
                     </div>
                 </div>
@@ -69,7 +76,7 @@
                 <div class="card card-light-danger">
                     <div class="card-body">
                         <p class="mb-4">Antrian</p>
-                        <p class="fs-30 mb-2" id="jumlahAntrianBox">0</p>
+                        <p class="fs-30 mb-2" id="jumlahAntrianBox">{{ $pasienAntrian }}</p>
                         <p>Pasien menunggu</p>
                     </div>
                 </div>
@@ -78,12 +85,21 @@
     </div>
 
     <div class="col-md-6 grid-margin stretch-card">
-        <div class="card tale-bg">
-            <div class="card-people mt-auto">
-                <img src="{{ asset('admin/images/dashboard/people.svg') }}" alt="people" />
-            </div>
+    <div class="card tale-bg position-relative">
+        <div class="card-people mt-auto">
+            <img src="{{ asset('admin/images/dashboard/people.svg') }}" alt="people" />
+        </div>
+        {{-- Widget Cuaca --}}
+        <div id="weatherWidget" 
+             class="position-absolute text-white p-3 rounded" 
+             style="top: 15px; right: 15px; background: rgba(0,0,0,0.5);">
+            <h5 id="cityName">Loading...</h5>
+            <p class="mb-0" id="temperature">-- °C</p>
+            <small id="weatherDesc">---</small>
         </div>
     </div>
+</div>
+
 </div>
 
 {{-- TABEL PASIEN HARI INI --}}
@@ -112,50 +128,28 @@
         </div>
     </div>
 </div>
+<script>
+    const apiKey = "abb4fa79d7f206a889bbfccd372e1714"; // ambil dari https://openweathermap.org/
+    const city = "Tegal"; // bisa disesuaikan
 
+    function fetchWeather() {
+        fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=id&appid=${apiKey}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("cityName").innerText = data.name;
+                document.getElementById("temperature").innerText = `${Math.round(data.main.temp)} °C`;
+                document.getElementById("weatherDesc").innerText = data.weather[0].description;
+            })
+            .catch(err => console.error("Gagal ambil cuaca:", err));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchWeather();
+        setInterval(fetchWeather, 600000); // update tiap 10 menit
+    });
+</script>
 @endsection
 
 @section('scripts')
-<script>
-    function fetchRealtimeDashboard() {
-        fetch("{{ route('dashboard.realtime') }}")
-            .then(response => response.json())
-            .then(data => {
-                // Update angka-angka dashboard
-                document.getElementById('jumlahHariIni').innerText = data.hari_ini;
-                document.getElementById('jumlahBulanIni').innerText = data.total_bulan_ini;
-                document.getElementById('jumlahKonsultasi').innerText = data.konsultasi;
-                document.getElementById('jumlahAntrianBox').innerText = data.antrian;
-                document.querySelector('h6 span.text-primary').innerText = `${data.antrian} pasien menunggu!`;
 
-                // Update daftar pasien hari ini
-                const tbody = document.getElementById('daftarPasienBody');
-                tbody.innerHTML = '';
-                data.pasien.forEach(p => {
-                    const badgeClass = p.status === 'Selesai'
-                        ? 'badge-success'
-                        : (p.status === 'Sedang dilayani' ? 'badge-warning' : 'badge-info');
-
-                    const row = `
-                        <tr>
-                            <td>${p.nomor_rm}</td>
-                            <td class="font-weight-bold">${p.nama}</td>
-                            <td>${p.jam}</td>
-                            <td>${p.keluhan}</td>
-                            <td class="font-weight-medium">
-                                <div class="badge ${badgeClass}">${p.status}</div>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
-            });
-    }
-
-    // Jalankan saat halaman load dan setiap 10 detik
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchRealtimeDashboard();
-        setInterval(fetchRealtimeDashboard, 10000);
-    });
-</script>
 @endsection

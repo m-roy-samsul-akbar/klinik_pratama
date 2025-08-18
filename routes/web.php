@@ -21,6 +21,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::post('/kirimPendaftaran', [RegisterController::class, 'store'])->name('registerPendaftaran.store');
+Route::post('/pasien/tidak-hadir', [PendaftaranController::class, 'tidakHadir'])->name('pasien.tidak_hadir');
 
 // Public User Pasien
 Route::get('/', function () {

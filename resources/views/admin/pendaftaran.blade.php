@@ -78,6 +78,9 @@
                                             <span class="badge bg-warning">{{ $pendaftaran->status }}</span>
                                         @elseif($pendaftaran->status == 'Dalam Perawatan')
                                             <span class="badge bg-info">{{ $pendaftaran->status }}</span>
+                                        @elseif($pendaftaran->status == 'Tidak Hadir')
+                                            <span class="badge bg-danger">{{ $pendaftaran->status }}</span>
+
                                         @else
                                             <span class="badge bg-success">{{ $pendaftaran->status }}</span>
                                         @endif
@@ -87,6 +90,10 @@
                                             data-bs-target="#modalKajianAwal"
                                             onclick="isiDataKajianAwal('{{ $pendaftaran->pasien->nama }}', '{{ $pendaftaran->id }}')">
                                             Kajian Awal
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-outline-primary"
+                                            onclick="pasienTidakHadir('{{ $pendaftaran->pasien->nama }}', '{{ $pendaftaran->id }}')">
+                                            Tidak Hadir
                                         </a>
                                     </td>
                                 </tr>
@@ -498,6 +505,39 @@
             input.value = `${yyyy}-${mm}-${dd}`;
             form.submit(); // ⬅️ Auto submit setelah reset tanggal
         }
+    </script>
+
+    <script>
+
+            function pasienTidakHadir(namaPasien, id) {
+                if(!confirm(`Yakin ingin menandai ${namaPasien} sebagai TIDAK HADIR?`)) return;
+
+                fetch("{{ route('pasien.tidak_hadir') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({
+                        id: id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`✅ ${namaPasien} berhasil ditandai sebagai Tidak Hadir!`);
+                        // bisa langsung refresh tabel realtime
+                        fetchRealtimeDashboard();
+                    } else {
+                        alert("❌ Gagal update status pasien.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Terjadi kesalahan saat menghubungi server.");
+                });
+            }
+
     </script>
 
 
