@@ -1,0 +1,89 @@
+.badge-hari {
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  color: #333;
+  border-radius: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+}
+
+.badge-hari.active {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.badge-hari:hover {
+  background-color: #cfe2ff;
+}
+
+.form-check-inline {
+  display: flex;
+  align-items: center;
+}
+
+input[type="radio"] {
+  vertical-align: middle;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 2;
+  color: #6c757d;
+}
+
+/* Ukuran dan warna default icon */
+.profile-icon {
+  font-size: 35px;
+  color: #4B49AC;
+  /* biru default */
+  margin-right: 8px;
+  transition: color 0.3s ease;
+}
+
+/* Efek hover saat diarahkan mouse */
+.profile-link:hover .profile-icon {
+  color: #FF9800;
+  /* ganti jadi oranye saat hover */
+}
+
+/* Bungkus pagination agar rapi */
+.custom-pagination nav {
+  display: flex;
+  justify-content: center;
+}
+
+/* Style tombol halaman */
+.pagination .page-item .page-link {
+  color: #4B49AC;
+  /* biru template */
+  border-radius: 6px;
+  margin: 0 3px;
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease;
+}
+
+/* Hover effect */
+.pagination .page-item .page-link:hover {
+  background-color: #4B49AC;
+  color: #fff;
+  border-color: #4B49AC;
+}
+
+/* Halaman aktif */
+.pagination .page-item.active .page-link {
+  background-color: #4B49AC;
+  border-color: #4B49AC;
+  color: #fff;
+}
+
+/* Tombol << dan >> */
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link {
+  font-weight: bold;
+}

@@ -1,0 +1,54 @@
+.cek-antrian-card {
+  background-color: #239195;
+  color: white;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: 10px;
+  display: inline-block;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tanggal {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.jam {
+  font-size: 36px;
+  font-weight: 600;
+}
+
+.antrian-card {
+  background-color: #7266ba;
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.antrian-header,
+.antrian-footer {
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 10px;
+  border-top: 2px solid white;
+  border-bottom: 2px solid white;
+}
+
+.antrian-header {
+  border-top: none;
+}
+
+.antrian-footer {
+  border-bottom: none;
+}
+
+.antrian-number {
+  font-size: 3rem;
+  padding: 40px 0;
+  font-weight: bold;
+}
+

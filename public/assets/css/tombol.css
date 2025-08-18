@@ -1,0 +1,16 @@
+/* Default style */
+#brand-title {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Style when clicked (applied dynamically via JavaScript) */
+#brand-title.active {
+    background-color: #00c6ff;
+    color: #ffffff;
+}
+

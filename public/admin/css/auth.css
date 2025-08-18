@@ -1,0 +1,65 @@
+.auth {
+  background: url('../images/login-bg2.jpg') no-repeat center center;
+  background-size: cover;
+  position: relative;
+}
+
+.auth::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  /* semi-transparent overlay */
+  z-index: 0;
+}
+
+.auth .auth-form-light {
+  position: relative;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.brand-logo img {
+  height: 55px;
+  width: auto;
+}
+
+.brand-logo .text-primary {
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.2;
+}
+
+.brand-logo .text-primary div:first-child {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.brand-logo .text-primary div:last-child {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #6c757d;
+}

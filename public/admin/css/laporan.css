@@ -1,0 +1,30 @@
+ .filter-radio-inline {
+     display: flex;
+     gap: 10px;
+     /* Jarak antar radio */
+     align-items: center;
+ }
+
+ .filter-radio-inline label.form-label {
+     margin-bottom: 0;
+     margin-right: 8px;
+     /* jarak label ke radio */
+ }
+
+ .form-check-label {
+     margin-left: 4px;
+     /* default-nya sekitar 8px, kita kecilkan */
+     margin-right: 4px;
+     /* jarak antar pilihan */
+ }
+
+ /* Hapus jarak antara radio dan label */
+ .form-check-input+.form-check-label {
+     margin-left: 4px !important;
+     /* atau 2px untuk lebih rapat */
+ }
+
+ /* (Opsional) rapatkan antar radio button */
+ .form-check {
+     margin-right: 10px;
+ }

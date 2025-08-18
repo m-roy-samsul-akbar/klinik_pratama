@@ -1,0 +1,79 @@
+/* General Styling */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+h2.mb-4 {
+  font-weight: 600;
+  color: #2a9d8f;
+}
+
+/* Dropdown Styling */
+select.form-control {
+  border-radius: 8px;
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  background-color: #fff;
+  font-size: 16px;
+  box-shadow: none;
+  transition: border-color 0.3s ease;
+}
+
+select.form-control:focus {
+  border-color: #2a9d8f;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(42, 157, 143, 0.25);
+}
+
+/* Doctor Cards */
+.card {
+  border: none;
+  border-radius: 16px;
+  background-color: #ffffff;
+  transition: all 0.3s ease-in-out;
+  padding: 25px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.card img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.card h5 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #264653;
+}
+
+.btn-outline-primary {
+  border-radius: 20px;
+  padding: 6px 20px;
+  font-size: 14px;
+  color: #2a9d8f;
+  border-color: #2a9d8f;
+  transition: 0.3s ease-in-out;
+}
+
+.btn-outline-primary:hover {
+  background-color: #2a9d8f;
+  color: white;
+  border-color: #2a9d8f;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 20px;
+  }
+}
+
