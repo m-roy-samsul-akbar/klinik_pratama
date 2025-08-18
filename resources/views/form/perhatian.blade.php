@@ -12,10 +12,10 @@
     <div class="card-body">
       <p>Berikut 4 Langkah mudah <strong>Registrasi Online :</strong></p>
       <ol>
-        <li><strong>Verifikasi Data Pasien</strong></li>
+        <li><strong>Mengisi Data Diri</strong></li>
         <li><strong>Pilih Jadwal Dokter</strong></li>
-        <li><strong>Konfirmasi</strong></li>
-        <li><strong>Selesai (Dapatkan Nomor Antrian dan Kode Booking)</strong></li>
+        <li><strong>Dapatkan Nomer Antrian</strong></li>
+        <li><strong>Selesai </strong></li>
       </ol>
     </div>
     <div class="card-footer">
@@ -35,7 +35,7 @@
       <ol>
         <li>
           Pendaftaran Online bisa dilakukan oleh pasien yang telah memiliki
-          No. Rekam Medik maupun pasien baru Umum dan JKN.
+          No. Rekam Medik maupun pasien baru Umum.
         </li>
         <li>
           Pendaftaran Online dapat dilakukan untuk kontrol Poli dengan Jadwal
@@ -45,16 +45,12 @@
           Pasien di hari yang sama hanya dapat mendaftar 1 kali dengan 1
           dokter.
         </li>
+         <li>
+          Untuk pembayaran bisa dilakukan secara langsung lewat loket pembayaran.
+        </li>
         <li>
           Pasien yang telah mendaftar online akan mendapatkan pesan melalui
           Whatsapp berisi pemberitahuan mendapatkan Nomer Antrean.
-        </li>
-        <li>
-          Apabila terdapat perubahan jadwal dokter maka jadwal yang telah
-          dipesan tersebut akan dilayani oleh dokter lain yang bertugas.
-        </li>
-        <li>
-          Apabila Anda telah melakukan pendaftaran online, Anda akan mendapat bukti registrasi dan nomor urut antrian.
         </li>
         <li>
           Urutan pelayanan berdasarkan nomor antri yang didapatkan pada waktu melakukan pendaftaran online. 

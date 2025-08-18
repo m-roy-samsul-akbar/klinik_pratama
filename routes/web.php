@@ -44,25 +44,13 @@ Route::get('/verifikasi', function () {
     return view('form.verifikasi');
 })->name('form.verifikasi');
 
-Route::get('/verifikasi2', function () {
-    return view('form.verifikasi2');
-})->name('form.verifikasi2');
-
-Route::get('/data', function () {
-    return view('form.data');
-})->name('data');
-
-Route::get('/otp', function () {
-    return view('form.otp');
-})->name('otp');
-
 Route::get('/cekantrian', function () {
     return view('pages.cekantrian');
 })->name('cekantrian');
 
-Route::get('/buktipendaftaran', function () {
-    return view('pages.buktipendaftaran');
-})->name('buktipendaftaran');
+// Route::get('/buktipendaftaran', function () {
+//     return view('pages.buktipendaftaran');
+// })->name('buktipendaftaran');
 
 Route::get('/admin/pendaftaran/antrian-terkini', [PendaftaranController::class, 'getAntrianTerkini'])
     ->name('antrian.terkini');
