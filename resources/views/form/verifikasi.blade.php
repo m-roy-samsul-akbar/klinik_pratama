@@ -190,14 +190,32 @@
                         id="no_whatsapp" placeholder="Contoh: 081234567890 / 6281234567890"></div>
             </div>
 
-            {{-- PASIEN LAMA --}}
+            {{-- Pasien Lama (dengan tombol Cek Data Pasien) --}}
             <div id="formPasienLama" style="display:none">
                 <h4 class="section-title">Data Pasien Lama</h4>
 
-                <div class="form-group"><label>NIK</label><input type="text" name="nik_lama" id="nik_lama"
-                        maxlength="16" placeholder="NIK terdaftar"></div>
-                <div class="form-group"><label>Tanggal Lahir</label><input type="date" name="tanggal_lahir_lama"
-                        id="tanggal_lahir_lama"></div>
+                <div class="form-group">
+                    <label for="nik_lama">NIK</label>
+                    <input type="text" name="nik_lama" id="nik_lama" placeholder="3271xxxxxxxxxxxx"
+                        maxlength="16" />
+                </div>
+
+                <div class="form-group">
+                    <label for="tanggal_lahir_lama">Tanggal Lahir</label>
+                    <input type="date" name="tanggal_lahir_lama" id="tanggal_lahir_lama" />
+                </div>
+
+                <div class="form-group" style="margin-top:.5rem">
+                    <button type="button" id="btnCekPasienLama" class="btn-cek-data"
+                        data-url="{{ route('api.pasien.cek') }}">
+                        Cek Data Pasien
+                    </button>
+                </div>
+
+                {{-- Area hasil cek --}}
+                <div id="infoPasienLama" class="alert" style="display:none">
+                    <div id="detailPasienLama"></div>
+                </div>
             </div>
 
             <div class="button-group" style="margin-top:1rem">
@@ -273,16 +291,19 @@
         {{-- STEP 3: OPSIONAL - NOTIF KODE ANTRIAN --}}
         <section id="step3" class="form-step" style="display:none">
             <h3>NOTIFIKASI KODE ANTRIAN </h3>
-            <p class="text-muted" style="margin-bottom:1rem">Masukkan nomer whatsapp untuk mendapatkan nomer antrian.</p>
-
+            <p class="text-muted step3-intro">
+                Masukkan nomer whatsapp untuk mendapatkan nomer antrian.
+            </p>
             <div class="form-group">
                 <label for="whatsapp">Nomor WhatsApp </label>
                 <input id="whatsapp" type="tel" name="whatsapp" inputmode="tel" autocomplete="tel"
                     placeholder="0812xxxxxxx atau +62812xxxxxxx" class="form-control">
-                <small class="text-muted">Isi nomer whatsapp untuk mendapatkan <strong>nomer antrian</strong> dan bukti pendaftaran</small>
+                <small class="text-muted">Isi nomer whatsapp untuk mendapatkan <strong>nomer antrian</strong> dan bukti
+                    pendaftaran</small>
             </div>
 
-            <div class="checkbox-group" style="margin-top:1rem; display:flex;gap:.6rem;align-items:flex-start">
+            <div class="checkbox-group checkbox-sm"
+                style="margin-top:1rem; display:flex;gap:.6rem;align-items:flex-start">
                 <input type="checkbox" id="consent" name="consent" value="1">
                 <label for="consent">Saya menyetujui menerima pesan WhatsApp terkait kode antrian.</label>
             </div>
@@ -351,10 +372,9 @@
 @endsection
 
 @push('scripts')
-
     {{-- SweetAlert2 CDN --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-     {{-- JS form --}}
+    {{-- JS form --}}
     <script src="{{ asset('assets/js/pendaftaran.js') }}"></script>
 @endpush

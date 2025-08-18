@@ -179,3 +179,79 @@ small.text-muted {
     margin-top: 0.35rem;
     font-size: 0.875rem;
 }
+
+/* Kecilkan hanya untuk grup consent di Step 3 */
+#step3 .checkbox-group.checkbox-sm {
+    padding: 8px 10px;
+    /* lebih ramping */
+    gap: .5rem;
+}
+
+#step3 .checkbox-group.checkbox-sm input[type="checkbox"] {
+    width: 14px;
+    /* default 18px -> jadi kecil */
+    height: 14px;
+    margin-top: 2px;
+}
+
+/* Jika di beberapa browser ukuran checkbox tetap besar, pakai scale */
+@supports (-webkit-appearance: none) or (-moz-appearance: none) {
+    #step3 .checkbox-group.checkbox-sm input[type="checkbox"] {
+        transform: scale(0.9);
+        transform-origin: top left;
+    }
+}
+
+#step3 .checkbox-group.checkbox-sm label {
+    font-size: 0.875rem;
+    /* teks sedikit lebih kecil */
+    line-height: 1.2;
+    margin: 0;
+}
+
+#step3 .step3-intro {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Tombol Cek Data Pasien — ungu */
+.btn-cek-data {
+    display: inline-block;
+    background: #6366f1;
+    /* ungu utama */
+    color: #fff;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 0.7rem 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, .18);
+    transition: background .2s ease, transform .05s ease, box-shadow .2s ease;
+}
+
+.btn-cek-data:hover {
+    background: #4f46e5;
+    /* ungu lebih gelap saat hover */
+    box-shadow: 0 8px 20px rgba(79, 70, 229, .22);
+}
+
+.btn-cek-data:active {
+    transform: translateY(1px);
+}
+
+.btn-cek-data:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .25);
+}
+
+/* Saat disabled ketika proses cek berlangsung */
+.btn-cek-data:disabled,
+.btn-cek-data[disabled] {
+    background: #c7d2fe;
+    /* ungu muda */
+    color: #fff;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 1;
+    /* cegah jadi pudar keabu-abuan */
+}

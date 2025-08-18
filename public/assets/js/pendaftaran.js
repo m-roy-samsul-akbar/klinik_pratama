@@ -193,6 +193,7 @@
         setPreview('whatsapp', textOf('whatsapp'));
         setPreview('consent', $('#consent')?.checked ? 'Disetujui' : 'Tidak');
     }
+    
 
     // ---------- Submit hook: set tanggal_registrasi master ----------
     function bindSubmit() {
@@ -258,6 +259,94 @@
             }
         });
     }
+
+    function bindCekPasienLama() {
+        const btn = document.getElementById("btnCekPasienLama");
+        if (!btn) return;
+
+        // URL prioritas dari data-url tombol, lalu meta (jika ada), lalu fallback
+        const url =
+            btn.dataset.url ||
+            document.querySelector('meta[name="pasien-cek-url"]')?.content ||
+            "/admin/api/pasien/cek";
+
+        // Ambil token CSRF dari hidden input @csrf (fallback ke meta jika ada)
+        const token =
+            document.querySelector('#formVerifikasi input[name="_token"]')?.value ||
+            document.querySelector('meta[name="csrf-token"]')?.content ||
+            "";
+
+        btn.addEventListener("click", async function () {
+            const nik = (document.getElementById("nik_lama")?.value || "").replace(/\D/g, "");
+
+            // ⬇️ Perbaikan ID: cocokkan dengan HTML (tanggal_lahir_lama)
+            const tgl =
+                document.getElementById("tanggal_lahir_lama")?.value ||
+                document.getElementById("tgl_lahir_lama")?.value || // fallback kalau ada variasi lama
+                "";
+
+            // Validasi ringan
+            if (nik.length !== 16) {
+                return window.Swal
+                    ? Swal.fire({ title: "NIK tidak valid", text: "NIK harus 16 digit.", icon: "warning" })
+                    : alert("NIK harus 16 digit.");
+            }
+            if (!tgl || isNaN(new Date(tgl).getTime())) {
+                return window.Swal
+                    ? Swal.fire({ title: "Tanggal lahir kosong", text: "Isi tanggal lahir.", icon: "warning" })
+                    : alert("Tanggal lahir harus diisi.");
+            }
+
+            // Loading state
+            const info = document.getElementById("infoPasienLama");
+            const detail = document.getElementById("detailPasienLama");
+            info.style.display = "block";
+            info.className = "alert alert-info";
+            detail.textContent = "Mencari data pasien...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": token
+                    },
+                    body: JSON.stringify({ nik: nik, tanggal_lahir: tgl }),
+                    credentials: "same-origin"
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === "found" && data.data) {
+                    const p = data.data;
+                    info.className = "alert alert-success";
+                    detail.innerHTML = `
+          <div><strong>Nama:</strong> ${p.nama}</div>
+          <div><strong>NIK:</strong> ${p.nik}</div>
+          <div><strong>Jenis Kelamin:</strong> ${p.jenis_kelamin}</div>
+          <div><strong>TTL:</strong> ${p.tempat_lahir}, ${p.tanggal_lahir}</div>
+          <div><strong>Alamat:</strong> ${p.alamat}</div>
+        `;
+                    // Jika ingin lanjut otomatis ke step 2:
+                    // window.nextStep(2);
+                } else {
+                    info.className = "alert alert-warning";
+                    detail.textContent = data.message || "Data pasien tidak ditemukan. Silakan periksa NIK & tanggal lahir.";
+                }
+            } catch (e) {
+                console.error(e);
+                info.className = "alert alert-danger";
+                detail.textContent = "Terjadi kesalahan saat menghubungi server.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // panggil saat DOM siap
+    document.addEventListener("DOMContentLoaded", bindCekPasienLama);
 
 
 

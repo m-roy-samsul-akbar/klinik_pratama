@@ -33,6 +33,7 @@ Route::get('/verifikasi', fn() => view('form.verifikasi'))->name('form.verifikas
 Route::get('/cekantrian', fn() => view('pages.cekantrian'))->name('cekantrian');
 Route::get('/buktipendaftaran', [PendaftaranController::class, 'buktipendaftaran'])
     ->name('bukti.pendaftaran');
+    
 
 // Antrian terkini (dipakai display publik)
 Route::get('/admin/pendaftaran/antrian-terkini', [PendaftaranController::class, 'getAntrianTerkini'])
@@ -125,6 +126,9 @@ Route::middleware(['auth'])->group(function () {
         // Pengaturan admin (static view)
         Route::get('/pengaturan', fn() => view('admin.pengaturan'))->name('admin.pengaturan');
     });
+
+    Route::post('/admin/api/pasien/cek', [PendaftaranController::class, 'cekPasienLama'])
+    ->name('api.pasien.cek');
 
     /*
     |----------------------------------------------------------------------
