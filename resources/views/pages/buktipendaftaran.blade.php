@@ -7,7 +7,7 @@
     <!-- Header Slider -->
     <section class="home-slider owl-carousel">
         <div class="slider-item bread-item" style="background-image: url('{{ asset('assets/images/tempat3.jpg') }}');"
-             data-stellar-background-ratio="0.5">
+            data-stellar-background-ratio="0.5">
             <div class="overlay"></div>
             <div class="container" data-scrollax-parent="true">
                 <div class="row slider-text align-items-end">
@@ -42,19 +42,13 @@
                             <form action="{{ route('bukti.pendaftaran') }}" method="GET" class="mb-4">
                                 <div class="form-row">
                                     <div class="col-md-6 mb-2">
-                                        <input type="text"
-                                               name="nik"
-                                               class="form-control"
-                                               placeholder="Contoh: 327106xxxxxxxxxx"
-                                               value="{{ old('nik', $nik) }}"
-                                               minlength="16" maxlength="16"
-                                               required>
+                                        <input type="text" name="nik" class="form-control"
+                                            placeholder="Contoh: 327106xxxxxxxxxx" value="{{ old('nik', $nik) }}"
+                                            minlength="16" maxlength="16" required>
                                     </div>
                                     <div class="col-md-3 mb-2">
-                                        <input type="date"
-                                               name="tanggal"
-                                               class="form-control"
-                                               value="{{ old('tanggal', $tanggal) }}">
+                                        <input type="date" name="tanggal" class="form-control"
+                                            value="{{ old('tanggal', $tanggal) }}">
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <button type="submit" class="btn btn-primary btn-block">
@@ -74,7 +68,7 @@
                                 {{-- Tidak ditemukan --}}
                                 <div class="alert alert-warning">
                                     <strong>Data tidak ditemukan.</strong>
-                                    @if($tanggal)
+                                    @if ($tanggal)
                                         Tidak ada pendaftaran untuk NIK <code>{{ $nik }}</code> pada tanggal
                                         <code>{{ Carbon::parse($tanggal)->translatedFormat('d F Y') }}</code>.
                                     @else
@@ -87,7 +81,8 @@
                                 {{-- Tampilan bukti pendaftaran --}}
                                 <div id="print-area" class="border rounded p-3">
                                     <div class="d-flex align-items-center mb-3">
-                                        <img src="{{ asset('assets/images/klinik.png') }}" alt="logo" style="height:60px" class="mr-3">
+                                        <img src="{{ asset('assets/images/klinik.png') }}" alt="logo"
+                                            style="height:60px" class="mr-3">
                                         <div>
                                             <h5 class="mb-0">Klinik Pratama Aisyiyah Hj Mafroh</h5>
                                             <small class="text-muted">Bukti Pendaftaran Pasien</small>
@@ -220,7 +215,8 @@
 
                                     <div class="alert alert-light border mt-3 mb-2">
                                         <small class="text-muted">
-                                            Catatan: Datang 10–15 menit lebih awal untuk proses verifikasi. Harap membawa identitas dan
+                                            Catatan: Datang 10–15 menit lebih awal untuk proses verifikasi. Harap membawa
+                                            identitas dan
                                             menunjukkan bukti pendaftaran ini kepada petugas.
                                         </small>
                                     </div>
