@@ -1,0 +1,181 @@
+/* === Progress Bar === */
+.progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.progress-step {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 2px solid #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #9ca3af;
+    background: #fff;
+}
+
+.progress-step.active {
+    border-color: #6366f1;
+    color: #6366f1;
+    background: #eef2ff;
+}
+
+.progress-line {
+    flex: 1;
+    height: 2px;
+    background: #e5e7eb;
+}
+
+/* === Form Step === */
+.form-step {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.form-group {
+    margin: 0.75rem 0;
+}
+
+.form-group>label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+.form-group input[type='text'],
+.form-group input[type='date'],
+.form-group input[type='tel'],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    transition: box-shadow 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.form-group textarea {
+    min-height: 90px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    background: #fff;
+}
+
+/* === Radio & Checkbox === */
+.radio-group,
+.form-radio-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.checkbox-group {
+    margin-top: 1.1rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    padding: 12px 14px;
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+}
+
+.checkbox-group input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+}
+
+.checkbox-group label {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* === Buttons === */
+.button-group {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.btn-next,
+.btn-back {
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.btn-next {
+    background: #6366f1;
+    color: #fff;
+}
+
+.btn-next:hover {
+    background: #4f46e5;
+}
+
+.btn-back {
+    background: #f3f4f6;
+    color: #374151;
+    border-color: #e5e7eb;
+}
+
+.btn-back:hover {
+    background: #e5e7eb;
+}
+
+/* === Section Title === */
+.section-title {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 3rem 0 2rem;
+}
+
+/* === Preview Step 4 === */
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.preview-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+}
+
+.preview-card h4 {
+    margin: 0 0 8px 0;
+}
+
+small.text-muted {
+    color: #6b7280;
+}
+
+.has-error .form-control {
+    border-color: #ef4444;
+}
+
+.error {
+    color: #dc2626;
+    margin-top: 0.35rem;
+    font-size: 0.875rem;
+}

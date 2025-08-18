@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\RegisterController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DokterController;
@@ -13,157 +11,147 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardDokterController;
 use App\Http\Controllers\SettingsController;
 
-// Authentication Routes login dan register (dokter & admin)
+/*
+|--------------------------------------------------------------------------
+| Public (Guest)
+|--------------------------------------------------------------------------
+*/
+
+// Auth (login/register admin)
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterAdminForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::post('/kirimPendaftaran', [RegisterController::class, 'store'])->name('registerPendaftaran.store');
-Route::post('/pasien/tidak-hadir', [PendaftaranController::class, 'tidakHadir'])->name('pasien.tidak_hadir');
+// Halaman publik
+Route::get('/', fn() => view('pages.home'))->name('home');
+Route::get('/tentangkami', fn() => view('pages.tentangkami'))->name('tentangkami');
+Route::get('/kontakkami', fn() => view('pages.kontakkami'))->name('kontakkami');
+Route::get('/perhatian', fn() => view('form.perhatian'))->name('perhatian');
+Route::get('/verifikasi', fn() => view('form.verifikasi'))->name('form.verifikasi');
+Route::get('/cekantrian', fn() => view('pages.cekantrian'))->name('cekantrian');
+Route::get('/buktipendaftaran', [PendaftaranController::class, 'buktipendaftaran'])
+    ->name('bukti.pendaftaran');
 
-// Public User Pasien
-Route::get('/', function () {
-    return view('pages.home');
-})->name('home');
-
-Route::get('/tentangkami', function () {
-    return view('pages.tentangkami');
-})->name('tentangkami');
-
-Route::get('/kontakkami', function () {
-    return view('pages.kontakkami');
-})->name('kontakkami');
-
-Route::get('/perhatian', function () {
-    return view('form.perhatian');
-})->name('perhatian');
-
-Route::get('/verifikasi', function () {
-    return view('form.verifikasi');
-})->name('form.verifikasi');
-
-Route::get('/cekantrian', function () {
-    return view('pages.cekantrian');
-})->name('cekantrian');
-
-// Route::get('/buktipendaftaran', function () {
-//     return view('pages.buktipendaftaran');
-// })->name('buktipendaftaran');
-
+// Antrian terkini (dipakai display publik)
 Route::get('/admin/pendaftaran/antrian-terkini', [PendaftaranController::class, 'getAntrianTerkini'])
     ->name('antrian.terkini');
 
+// Submit pendaftaran dari FORM PUBLIK (verifikasi)
+Route::post('/pendaftaran', [PendaftaranController::class, 'store'])
+    ->name('registerPendaftaran.store'); // biar kompatibel dengan action lama
 
-// Protected Routes - Require Authentication
+
+/*
+|--------------------------------------------------------------------------
+| Protected (Auth)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->group(function () {
 
+    // Settings (profil & password)
     Route::get('/pengaturan', [SettingsController::class, 'index'])->name('settings.index');
-    // Settings - Update Profile dan Ganti Password
     Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
     Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
 
-    // General Dashboard Route (redirects based on role)
+    // Redirect dashboard berdasarkan role
     Route::get('/dashboard', function () {
         $user = auth()->user();
-
-        if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
-        } elseif ($user->isDokter()) {
-            return redirect()->route('dokter.dashboard');
-        }
-
+        if ($user->isAdmin()) return redirect()->route('admin.dashboard');
+        if ($user->isDokter()) return redirect()->route('dokter.dashboard');
         return redirect('/');
     })->name('dashboard');
 
-    // Admin Dashboard - Only Admin Role
+    /*
+    |----------------------------------------------------------------------
+    | Admin Only
+    |----------------------------------------------------------------------
+    */
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
 
-        // Dashboard
+        // Dashboard Admin
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chart-data');
 
-
         // Dokter Management
         Route::resource('dokter', DokterController::class);
-
         Route::get('/datadokter', [DokterController::class, 'index'])->name('admin.datadokter');
-
         Route::put('/dokter/update-akun/{id}', [DokterController::class, 'updateAkun'])->name('dokter.updateAkun');
-
 
         // Jadwal Dokter Management
         Route::resource('jadwaldokter', JadwalDokterController::class);
 
-        // Pendaftaran Pasien Management
+        // Pendaftaran (Admin)
         Route::get('/pendaftaran', [PendaftaranController::class, 'index'])->name('admin.pendaftaran');
         Route::post('/pendaftaran', [PendaftaranController::class, 'store'])->name('admin.pendaftaran.store');
         Route::put('/pendaftaran/{id}', [PendaftaranController::class, 'update'])->name('admin.pendaftaran.update');
         Route::delete('/pendaftaran/{id}', [PendaftaranController::class, 'destroy'])->name('admin.pendaftaran.destroy');
         Route::get('/pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('admin.pendaftaran.show');
 
+        // Tandai pasien TIDAK HADIR (amankan di admin)
+        Route::post('/pendaftaran/tidak-hadir', [PendaftaranController::class, 'tidakHadir'])
+            ->name('pasien.tidak_hadir');
 
-        // API Routes for AJAX calls
+        // Data antrian & panggil pasien
+        Route::get('/dataantrian', [PendaftaranController::class, 'dataAntrian'])->name('admin.dataantrian');
+        Route::post('/dataantrian/panggil/{id}', [PendaftaranController::class, 'panggilPasien'])
+            ->name('antrian.panggil');
+
+        // API AJAX (Admin)
         Route::get('/api/dokter/by-spesialis/{spesialis}', [PendaftaranController::class, 'getDokterBySpesialis'])
             ->name('admin.api.dokter.by-spesialis');
+
+        Route::get('/api/dokter/jam-praktek', function (Illuminate\Http\Request $r) {
+            $dokter = \App\Models\Dokter::find($r->dokter_id);
+            return response()->json(['data' => ['jam_praktek' => $dokter->jam_praktek ?? null]]);
+        })->name('admin.api.dokter.jam-praktek');
+
         Route::post('/api/pasien/cek', [PendaftaranController::class, 'cekPasienLama'])
             ->name('admin.api.pasien.cek');
 
-        // Additional API routes
         Route::get('/api/pendaftaran/statistik', [PendaftaranController::class, 'getStatistik'])
             ->name('admin.api.pendaftaran.statistik');
+
         Route::get('/api/pendaftaran/export', [PendaftaranController::class, 'export'])
             ->name('admin.api.pendaftaran.export');
 
+        // Kajian awal (perawat/admin melakukan input awal)
         Route::post('/kajian-awal', [PendaftaranController::class, 'simpanKajianAwal'])->name('kajian-awal.store');
-        // Route::get('/rekammedis', [PendaftaranController::class, 'rekamMedis'])->name('rekammedis.index');
+
+        // Data pasien & rekam medis (tampilan admin)
         Route::get('/datapasien', [PendaftaranController::class, 'dataPasien'])->name('admin.datapasien');
 
-        // Route untuk memanggil pasien
-        Route::post('/admin/dataantrian/panggil/{id}', [PendaftaranController::class, 'panggilPasien'])->name('antrian.panggil');
-
-        // Other admin routes
-
-        Route::get('/dataantrian', [PendaftaranController::class, 'dataAntrian'])->name('admin.dataantrian');
-
-        Route::get('/pengaturan', function () {
-            return view('admin.pengaturan');
-        })->name('admin.pengaturan');
-
+        // Pengaturan admin (static view)
+        Route::get('/pengaturan', fn() => view('admin.pengaturan'))->name('admin.pengaturan');
     });
 
-    // Dokter Dashboard - Only Dokter Role
+    /*
+    |----------------------------------------------------------------------
+    | Dokter Only
+    |----------------------------------------------------------------------
+    */
     Route::middleware(['role:dokter'])->prefix('dokter')->group(function () {
-        // 
 
-        Route::get('/dashboard', [DashboardDokterController::class, 'index'])->name('dashboard');
+        // Dashboard Dokter
+        Route::get('/dashboard', [DashboardDokterController::class, 'index'])->name('dokter.dashboard');
         Route::get('/dashboard/data', [DashboardDokterController::class, 'getRealtimeData'])->name('dashboard.realtime');
 
-        Route::get('/dashboard', function () {
-            return view('dokter.dashboard');
-        })->name('dokter.dashboard');
-
-        Route::get('/laporan', function () {
-            return view('dokter.laporan');
-        })->name('dokter.laporan');
-
-        Route::get('/pengaturan', function () {
-            return view('dokter.pengaturan');
-        })->name('dokter.pengaturan');
-
-
-        Route::put('/data-pasien/update', [KajianController::class, 'updateDataPasien'])->name('dokter.datapasien.update');
-        Route::delete('/data-pasien/hapus/{id}', [KajianController::class, 'hapusDataPasien'])->name('datapasien.hapus');
-        Route::get('/data-pasien', [KajianController::class, 'dataPasien'])->name('dokter.datapasien');
-        Route::get('/rekammedis', [KajianController::class, 'rekamMedis'])->name('rekammedis.index');
-        Route::put('/rekammedis', [KajianController::class, 'updateRekamMedis'])->name('rekammedis.update');
-        Route::get('/kajian-awal', [KajianController::class, 'kajianAwalPasien'])->name('dokter.kajian.index');
-        Route::post('/kajian-awal', [KajianController::class, 'simpanDiagnosis'])->name('dokter.kajian.update');
-
+        // Laporan Dokter
         Route::get('/laporan', [LaporanController::class, 'index'])->name('dokter.laporan');
         Route::get('/laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
+
+        // Kajian & Rekam Medis (untuk dokter)
+        Route::get('/kajian-awal', [KajianController::class, 'kajianAwalPasien'])->name('dokter.kajian.index');
+        Route::post('/kajian-awal', [KajianController::class, 'simpanDiagnosis'])->name('dokter.kajian.update');
+
+        Route::get('/rekammedis', [KajianController::class, 'rekamMedis'])->name('rekammedis.index');
+        Route::put('/rekammedis', [KajianController::class, 'updateRekamMedis'])->name('rekammedis.update');
+
+        Route::get('/data-pasien', [KajianController::class, 'dataPasien'])->name('dokter.datapasien');
+        Route::put('/data-pasien/update', [KajianController::class, 'updateDataPasien'])->name('dokter.datapasien.update');
+        Route::delete('/data-pasien/hapus/{id}', [KajianController::class, 'hapusDataPasien'])->name('datapasien.hapus');
     });
 
 });

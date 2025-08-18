@@ -5,15 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Pasien;
 use App\Models\Dokter;
 use App\Models\Pendaftaran;
+use App\Models\KajianAwal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\KajianAwal;
-
+use Illuminate\Support\Facades\Http; // <=== penting untuk Fonnte
+use Illuminate\Support\Facades\Validator;
 
 class PendaftaranController extends Controller
 {
-
     public function tidakHadir(Request $request)
     {
         $pendaftaran = Pendaftaran::find($request->id);
@@ -27,27 +27,21 @@ class PendaftaranController extends Controller
         return response()->json(['success' => false], 404);
     }
 
+    public function index(Request $request)
+    {
+        $query = Pendaftaran::with(['pasien', 'dokter'])
+            ->where('status', '<>', 'Selesai');
 
+        $query->when($request->filled('tanggal'), function ($q) use ($request) {
+            $q->whereDate('tanggal_registrasi', $request->tanggal);
+        });
 
+        $pendaftarans = $query->orderByDesc('tanggal_registrasi')
+            ->paginate(10)
+            ->withQueryString();
 
-public function index(Request $request)
-{
-    // Eager load relasi dan exclude status "Selesai"
-    $query = Pendaftaran::with(['pasien', 'dokter'])
-        ->where('status', '<>', 'Selesai');
-
-    // Filter tanggal jika ada ?tanggal=YYYY-MM-DD
-    $query->when($request->filled('tanggal'), function ($q) use ($request) {
-        $q->whereDate('tanggal_registrasi', $request->tanggal);
-    });
-
-    // Ambil data (urut terbaru) + pagination, pertahankan query string
-    $pendaftarans = $query->orderByDesc('tanggal_registrasi')
-        ->paginate(10)
-        ->withQueryString();
-
-    return view('admin.pendaftaran', compact('pendaftarans'));
-}
+        return view('admin.pendaftaran', compact('pendaftarans'));
+    }
 
     // API untuk mendapatkan dokter berdasarkan spesialis
     public function getDokterBySpesialis($spesialis)
@@ -88,9 +82,11 @@ public function index(Request $request)
             ]);
 
             $pasien = null;
+            $dokterId = null;
+            $tanggalRegistrasi = null;
 
             if ($request->jenis_pasien == 'lama') {
-                // Validasi untuk pasien lama
+                // Validasi pasien lama
                 $request->validate([
                     'nik_lama' => 'required',
                     'tanggal_lahir_lama' => 'required|date',
@@ -98,12 +94,12 @@ public function index(Request $request)
                     'dokter_lama' => 'required|exists:dokters,id',
                 ]);
 
-                // Cari pasien lama
                 $pasien = Pasien::where('nik', $request->nik_lama)
                     ->where('tanggal_lahir', $request->tanggal_lahir_lama)
                     ->first();
 
                 if (!$pasien) {
+                    DB::rollBack();
                     return response()->json([
                         'status' => 'error',
                         'message' => 'Data pasien tidak ditemukan. Silakan daftarkan sebagai pasien baru.'
@@ -112,9 +108,8 @@ public function index(Request $request)
 
                 $dokterId = $request->dokter_lama;
                 $tanggalRegistrasi = $request->tanggal_registrasi_lama ?? $request->tanggal_registrasi;
-
             } else {
-                // Validasi untuk pasien baru
+                // Validasi pasien baru
                 $request->validate([
                     'nama' => 'required|string|max:255',
                     'nik' => 'required|string|size:16|unique:pasiens,nik',
@@ -140,7 +135,6 @@ public function index(Request $request)
                     'dokter_baru' => 'required|exists:dokters,id',
                 ]);
 
-                // Buat pasien baru
                 $pasien = Pasien::create([
                     'nama' => $request->nama,
                     'nik' => $request->nik,
@@ -168,19 +162,17 @@ public function index(Request $request)
                 $tanggalRegistrasi = $request->tanggal_registrasi_baru ?? $request->tanggal_registrasi;
             }
 
-            // Cek apakah pasien sudah terdaftar pada dokter dan tanggal yang sama
+            // Cek duplikasi pendaftaran
             if (Pendaftaran::isAlreadyRegistered($pasien->id, $dokterId, $tanggalRegistrasi)) {
-                DB::rollback();
+                DB::rollBack();
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Pasien sudah terdaftar pada dokter dan tanggal yang sama.'
                 ], 422);
             }
 
-            // Generate nomor antrian dengan locking untuk mencegah race condition
+            // Generate nomor antrian (dengan locking)
             $nomorAntrian = $this->generateNomorAntrianWithLock($dokterId, $tanggalRegistrasi);
-
-            // Log untuk debugging
             Log::info('Generating nomor antrian', [
                 'dokter_id' => $dokterId,
                 'tanggal' => $tanggalRegistrasi,
@@ -196,7 +188,26 @@ public function index(Request $request)
                 'status' => 'Belum Kajian Awal',
             ]);
 
+            // Ambil info dokter untuk keperluan WA
+            $dokter = Dokter::find($dokterId);
+
             DB::commit();
+
+            // === FONNTE WHATSAPP: kirim pesan jika consent & ada target ===
+            $waResult = null;
+            $shouldSendWA = (bool) $request->boolean('consent');
+
+            // Ambil target: prioritas form step 3 (whatsapp), fallback ke no_whatsapp pasien
+            $targetWa = trim((string) $request->input('whatsapp') ?: (string) $pasien->no_whatsapp);
+
+            if ($shouldSendWA && $targetWa) {
+                $message = $this->buildAntrianMessage($pasien, $dokter, $pendaftaran);
+                $waResult = $this->callFonnteApi([
+                    'target' => $targetWa,
+                    'message' => $message,
+                    'schedule' => null,
+                ]);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -205,13 +216,18 @@ public function index(Request $request)
                     'pendaftaran' => $pendaftaran,
                     'nomor_antrian' => $nomorAntrian,
                     'pasien' => $pasien->nama,
-                    'dokter' => Dokter::find($dokterId)->nama,
-                    'tanggal_registrasi' => $tanggalRegistrasi
+                    'dokter' => $dokter?->nama,
+                    'tanggal_registrasi' => $tanggalRegistrasi,
+                    'whatsapp' => [
+                        'attempted' => (bool) $shouldSendWA,
+                        'target' => $shouldSendWA ? $targetWa : null,
+                        'result' => $waResult,
+                    ],
                 ]
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollback();
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validasi gagal',
@@ -219,7 +235,7 @@ public function index(Request $request)
             ], 422);
 
         } catch (\Exception $e) {
-            DB::rollback();
+            DB::rollBack();
             Log::error('Error in store pendaftaran: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
@@ -231,30 +247,22 @@ public function index(Request $request)
         }
     }
 
-    /**
-     * Generate nomor antrian dengan database locking untuk mencegah race condition
-     */
     private function generateNomorAntrianWithLock($dokterId, $tanggal)
     {
         return DB::transaction(function () use ($dokterId, $tanggal) {
-            // Ambil data spesialis dokter
             $dokter = Dokter::findOrFail($dokterId);
-            $prefix = strtoupper(substr($dokter->spesialis, 0, 1)); // U untuk Umum, G untuk Gigi, dst
+            $prefix = strtoupper(substr($dokter->spesialis, 0, 1)); // U/G/...
 
-            // Lock untuk hitung antrian hari itu berdasarkan dokter
             $count = DB::table('pendaftarans')
                 ->where('dokter_id', $dokterId)
                 ->whereDate('tanggal_registrasi', $tanggal)
                 ->lockForUpdate()
                 ->count();
 
-            return $prefix . str_pad($count + 1, 3, '0', STR_PAD_LEFT); // U001, G002, dst
+            return $prefix . str_pad($count + 1, 3, '0', STR_PAD_LEFT); // U001, G002, ...
         });
     }
 
-    /**
-     * Generate nomor antrian berdasarkan dokter dan tanggal (backup method)
-     */
     private function generateNomorAntrian($dokterId, $tanggal)
     {
         $dokter = Dokter::findOrFail($dokterId);
@@ -267,10 +275,6 @@ public function index(Request $request)
         return $prefix . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
     }
 
-
-    /**
-     * Update pendaftaran
-     */
     public function update(Request $request, $id)
     {
         try {
@@ -313,9 +317,6 @@ public function index(Request $request)
         }
     }
 
-    /**
-     * Hapus pendaftaran
-     */
     public function destroy($id)
     {
         try {
@@ -335,9 +336,6 @@ public function index(Request $request)
         }
     }
 
-    /**
-     * Show detail pendaftaran
-     */
     public function show($id)
     {
         try {
@@ -355,9 +353,6 @@ public function index(Request $request)
         }
     }
 
-    /**
-     * Get statistik pendaftaran
-     */
     public function getStatistik()
     {
         $today = now()->toDateString();
@@ -374,9 +369,6 @@ public function index(Request $request)
         ]);
     }
 
-    /**
-     * Export data pendaftaran (CSV)
-     */
     public function export(Request $request)
     {
         $query = Pendaftaran::with(['pasien', 'dokter']);
@@ -431,9 +423,6 @@ public function index(Request $request)
         return response()->stream($callback, 200, $headers);
     }
 
-    /**
-     * Get nomor antrian selanjutnya untuk preview
-     */
     public function getNextNomorAntrian(Request $request)
     {
         $request->validate([
@@ -460,10 +449,8 @@ public function index(Request $request)
             'keluhan' => 'required|string',
         ]);
 
-        // Ambil data pendaftaran
         $pendaftaran = Pendaftaran::findOrFail($request->pendaftaran_id);
 
-        // Simpan kajian awal dengan dokter_id dari pendaftaran
         KajianAwal::create([
             'pendaftaran_id' => $request->pendaftaran_id,
             'dokter_id' => $pendaftaran->dokter_id,
@@ -474,7 +461,6 @@ public function index(Request $request)
             'keluhan' => $request->keluhan,
         ]);
 
-        // Update status pendaftaran
         $pendaftaran->status = 'Selesai';
         $pendaftaran->save();
 
@@ -499,7 +485,6 @@ public function index(Request $request)
 
     public function dataAntrian(Request $request)
     {
-        // Ambil tanggal dari filter, default hari ini
         $tanggal = $request->input('tanggal', now()->toDateString());
 
         $antrianUmum = Pendaftaran::with(['pasien', 'dokter'])
@@ -548,4 +533,116 @@ public function index(Request $request)
         ]);
     }
 
+    // ============================================================
+    // ==============  FONNTE WHATSAPP INTEGRATION  ================
+    // ============================================================
+
+    /**
+     * Bangun template pesan antrian untuk WA.
+     */
+    protected function buildAntrianMessage(Pasien $pasien, ?Dokter $dokter, Pendaftaran $pendaftaran): string
+    {
+        $tgl = \Carbon\Carbon::parse($pendaftaran->tanggal_registrasi)->locale('id_ID')->isoFormat('dddd, D MMMM YYYY');
+        $dokterLine = $dokter ? "{$dokter->nama} ({$dokter->spesialis})" : '-';
+
+        return
+            "Assalamualaikum/Salam,
+Registrasi Anda berhasil. Berikut detailnya:
+
+• Nama Pasien  : {$pasien->nama}
+• Nomor Antrian: {$pendaftaran->nomor_antrian}
+• Dokter       : {$dokterLine}
+• Tanggal      : {$tgl}
+
+Mohon hadir tepat waktu dan membawa kartu identitas.
+Terima kasih 🙏";
+    }
+
+    /**
+     * Panggil API Fonnte.
+     * Mengembalikan array standar: { ok, status_code, data|error }
+     */
+    protected function callFonnteApi(array $payload): array
+    {
+        $token = config('services.fonnte.token', env('FONNTE_TOKEN'));
+        if (!$token) {
+            return [
+                'ok' => false,
+                'error' => 'FONNTE_TOKEN belum diset di .env atau config services',
+            ];
+        }
+
+        $payload = array_filter($payload, fn($v) => !is_null($v));
+
+        try {
+            $res = Http::withoutVerifying()
+                ->asForm()
+                ->withHeaders(['Authorization' => $token])
+                ->post('https://api.fonnte.com/send', $payload);
+
+            return $this->parseFonnteResponse($res);
+        } catch (\Throwable $e) {
+            return [
+                'ok' => false,
+                'error' => 'Gagal menghubungi Fonnte: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Standarisasi response dari Fonnte.
+     */
+    protected function parseFonnteResponse(\Illuminate\Http\Client\Response $res): array
+    {
+        $status = $res->status();
+        $json = $res->json();
+
+        if ($res->successful()) {
+            return [
+                'ok' => (bool) ($json['status'] ?? true),
+                'status_code' => $status,
+                'data' => $json,
+            ];
+        }
+
+        return [
+            'ok' => false,
+            'status_code' => $status,
+            'error' => $json['detail'] ?? $json['message'] ?? $res->body(),
+        ];
+    }
+
+    public function buktipendaftaran(Request $request)
+    {
+        $nikRaw = (string) $request->input('nik');
+        $nik = preg_replace('/\D/', '', $nikRaw);
+        $tanggal = $request->input('tanggal');
+
+        Validator::make(
+            ['nik' => $nik, 'tanggal' => $tanggal],
+            ['nik' => 'nullable|digits:16', 'tanggal' => 'nullable|date'],
+            ['nik.digits' => 'NIK harus 16 digit.', 'tanggal.date' => 'Tanggal tidak valid.']
+        )->validate();
+
+        $pendaftaran = null;
+
+        if (!empty($nik)) {
+            $pasienId = Pasien::where('nik', $nik)->value('id');
+
+            if ($pasienId) {
+                $q = Pendaftaran::with(['pasien', 'dokter'])->where('pasien_id', $pasienId);
+                if (!empty($tanggal)) {
+                    $q->whereDate('tanggal_registrasi', $tanggal);
+                }
+                $pendaftaran = $q->latest('tanggal_registrasi')->latest()->first();
+            }
+        }
+
+        // ⬇️ arahkan ke pages.buktipendaftaran
+        return view('pages.buktipendaftaran', [
+            'pendaftaran' => $pendaftaran,
+            'nik' => $nik,
+            'tanggal' => $tanggal,
+        ]);
+    }
 }

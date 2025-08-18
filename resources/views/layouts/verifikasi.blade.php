@@ -8,6 +8,7 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('assets/css/verifikasi.css') }}">
+    <link rel="icon" href="{{ asset('assets/images/logoklinik1.png') }}">
     @stack('styles')
 </head>
 
@@ -22,7 +23,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('assets/js/verifikasi.js') }}"></script>
+    <script src="{{ asset('admin/js/registrasi.js') }}"></script>
     @stack('scripts')
 </body>
 

@@ -56,6 +56,9 @@
                     <li class="nav-item {{ Request::is('cekantrian') ? 'active' : '' }}">
                         <a href="/cekantrian" class="nav-link">Cek Antrian</a>
                     </li>
+                    <li class="nav-item {{ request()->routeIs('bukti.pendaftaran') ? 'active' : '' }}">
+                        <a href="{{ route('bukti.pendaftaran') }}" class="nav-link">Bukti Pendaftaran</a>
+                    </li>
                     <li class="nav-item {{ Request::is('tentangkami') ? 'active' : '' }}">
                         <a href="/tentangkami" class="nav-link">Tentang Kami</a>
                     </li>
