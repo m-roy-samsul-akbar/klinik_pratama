@@ -157,8 +157,7 @@
         if (jenis === 'baru') {
             setPreview('nama', textOf('nama'));
             setPreview('nik', textOf('nik'));
-            setPreview('ttl', [textOf('tempat_lahir'), dateID(textOf('tanggal_lahir'))].filter(Boolean).join(
-                ', '));
+            setPreview('ttl', [textOf('tempat_lahir'), dateID(textOf('tanggal_lahir'))].filter(Boolean).join(', '));
             setPreview('jenis_kelamin', textOf('jenis_kelamin'));
             setPreview('agama', textOf('agama'));
             setPreview('alamat', textOf('alamat'));
@@ -180,7 +179,6 @@
             setPreview('jam', $('#jam_baru')?.value || '');
             setPreview('tanggal_registrasi', dateID(textOf('tanggal_registrasi_baru')));
         } else {
-            // pasien lama: preview inti
             setPreview('nama', '(Pasien Lama)');
             setPreview('nik', textOf('nik_lama'));
             setPreview('ttl', dateID(textOf('tanggal_lahir_lama')));
@@ -191,9 +189,33 @@
         }
 
         setPreview('whatsapp', textOf('whatsapp'));
-        setPreview('consent', $('#consent')?.checked ? 'Disetujui' : 'Tidak');
+
+        // Chip consent
+        const consentSpan = document.querySelector('[data-preview="consent"]');
+        if (consentSpan) {
+            const ok = $('#consent')?.checked;
+            consentSpan.textContent = ok ? 'Disetujui' : 'Tidak';
+            consentSpan.classList.remove('chip', 'success', 'danger', 'empty');
+            consentSpan.classList.add('chip', ok ? 'success' : 'danger');
+        }
+
+        // === PENTING: panggil setelah SEMUA nilai terisi
+        markEmptyPreview();
     }
-    
+
+    function markEmptyPreview() {
+        document.querySelectorAll('#step4 [data-preview]').forEach(el => {
+            const v = (el.textContent || '').trim();
+            if (!v || v === '-' || /^Pilih\s/i.test(v)) {
+                el.textContent = '-';
+                el.classList.add('empty');   // -> jadi abu-abu via CSS
+            } else {
+                el.classList.remove('empty');
+            }
+        });
+    }
+
+
 
     // ---------- Submit hook: set tanggal_registrasi master ----------
     function bindSubmit() {

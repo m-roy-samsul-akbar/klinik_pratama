@@ -46,10 +46,7 @@
                                             placeholder="Contoh: 327106xxxxxxxxxx" value="{{ old('nik', $nik) }}"
                                             minlength="16" maxlength="16" required>
                                     </div>
-                                    <div class="col-md-3 mb-2">
-                                        <input type="date" name="tanggal" class="form-control"
-                                            value="{{ old('tanggal', $tanggal) }}">
-                                    </div>
+                                    
                                     <div class="col-md-3 mb-2">
                                         <button type="submit" class="btn btn-primary btn-block">
                                             <i class="fa fa-search mr-1"></i> Cek Bukti

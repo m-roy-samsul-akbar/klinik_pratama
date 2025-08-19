@@ -33,7 +33,7 @@ Route::get('/verifikasi', fn() => view('form.verifikasi'))->name('form.verifikas
 Route::get('/cekantrian', fn() => view('pages.cekantrian'))->name('cekantrian');
 Route::get('/buktipendaftaran', [PendaftaranController::class, 'buktipendaftaran'])
     ->name('bukti.pendaftaran');
-    
+
 
 // Antrian terkini (dipakai display publik)
 Route::get('/admin/pendaftaran/antrian-terkini', [PendaftaranController::class, 'getAntrianTerkini'])
@@ -59,8 +59,10 @@ Route::middleware(['auth'])->group(function () {
     // Redirect dashboard berdasarkan role
     Route::get('/dashboard', function () {
         $user = auth()->user();
-        if ($user->isAdmin()) return redirect()->route('admin.dashboard');
-        if ($user->isDokter()) return redirect()->route('dokter.dashboard');
+        if ($user->isAdmin())
+            return redirect()->route('admin.dashboard');
+        if ($user->isDokter())
+            return redirect()->route('dokter.dashboard');
         return redirect('/');
     })->name('dashboard');
 
@@ -128,7 +130,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::post('/admin/api/pasien/cek', [PendaftaranController::class, 'cekPasienLama'])
-    ->name('api.pasien.cek');
+        ->name('api.pasien.cek');
 
     /*
     |----------------------------------------------------------------------
@@ -140,6 +142,9 @@ Route::middleware(['auth'])->group(function () {
         // Dashboard Dokter
         Route::get('/dashboard', [DashboardDokterController::class, 'index'])->name('dokter.dashboard');
         Route::get('/dashboard/data', [DashboardDokterController::class, 'getRealtimeData'])->name('dashboard.realtime');
+        // di dalam Route::middleware(['role:dokter'])->prefix('dokter')->group(function () {
+        Route::get('/pengaturan', [SettingsController::class, 'index'])
+            ->name('dokter.pengaturan');
 
         // Laporan Dokter
         Route::get('/laporan', [LaporanController::class, 'index'])->name('dokter.laporan');

@@ -255,3 +255,89 @@ small.text-muted {
     opacity: 1;
     /* cegah jadi pudar keabu-abuan */
 }
+
+/* ==== SECTION 4 - Kartu review dua kolom ==== */
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+}
+
+.preview-card {
+    background: #fff;
+    border: 1px solid #eceff3;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, .06);
+    padding: 14px;
+}
+
+.preview-card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    color: #111827;
+}
+
+/* Ubah UL/LI default jadi baris label-nilai */
+.preview-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.preview-card ul li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 6px;
+    border-bottom: 1px dashed #f1f5f9;
+}
+
+.preview-card ul li:last-child {
+    border-bottom: 0;
+}
+
+.preview-card ul li>strong {
+    /* label kiri (Strong:) */
+    min-width: 140px;
+    /* sesuaikan kalau perlu */
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.preview-card ul li>span {
+    /* nilai kanan */
+    color: #111827;
+    font-weight: 600;
+}
+
+/* Nilai kosong (diisi '-' via JS) tampak abu-abu */
+.preview-card ul li>span.empty {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+/* Chip kecil utk consent */
+.chip {
+    display: inline-block;
+    padding: .15rem .55rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 700;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.chip.success {
+    background: #e9f7ef;
+    color: #166534;
+    border-color: #bef2d0;
+}
+
+.chip.danger {
+    background: #fff1f1;
+    color: #b91c1c;
+    border-color: #ffd7d7;
+}

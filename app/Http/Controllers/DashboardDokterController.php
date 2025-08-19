@@ -3,65 +3,65 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\KajianAwal;
-use Illuminate\Support\Carbon;
+use App\Models\Dokter;
+use App\Models\Pendaftaran;
 
 class DashboardDokterController extends Controller
 {
-    /**
-     * Tampilkan halaman dashboard utama dokter.
-     */
     public function index()
     {
-        // Data awal (jika mau kirim default ke view, bisa juga langsung dari AJAX di sisi client)
+        // Blade sudah hitung angka di sisi view; cukup render
         return view('dokter.dashboard');
     }
 
     /**
-     * Endpoint realtime untuk mengambil data dashboard secara dinamis via AJAX.
+     * Data realtime untuk tabel & ringkasan — dibatasi per dokter (user login).
      */
-    public function getRealtimeData()
+    public function getRealtimeData(Request $request)
     {
-        $today = Carbon::today();
+        $dokterId = Dokter::where('user_id', auth()->id())->value('id');
+        if (!$dokterId) {
+            return response()->json([
+                'status' => 'ok',
+                'rows'   => [],
+                'counts' => ['antrian' => 0, 'pasien_hari_ini' => 0, 'tidak_hadir' => 0],
+            ]);
+        }
 
-        // Jumlah pasien hari ini
-        $jumlahPasienHariIni = KajianAwal::whereDate('created_at', $today)->count();
+        $today = now()->toDateString();
 
-        // Total pasien bulan ini
-        $totalPasienBulanIni = KajianAwal::whereMonth('created_at', $today->month)->count();
+        $pendaftarans = Pendaftaran::with(['pasien', 'kajianAwal'])
+            ->where('dokter_id', $dokterId)
+            ->whereDate('tanggal_registrasi', $today)
+            ->orderBy('created_at')
+            ->get();
 
-        // Konsultasi hari ini (yang sudah ada diagnosis)
-        $jumlahKonsultasiHariIni = KajianAwal::whereDate('created_at', $today)
-            ->whereNotNull('diagnosis')
-            ->count();
+        $rows = $pendaftarans->map(function ($p) {
+            return [
+                'no_rm'   => $p->pasien->id ?? '-',             // sesuaikan jika ada kolom no_rm
+                'nama'    => $p->pasien->nama ?? '-',
+                'jam'     => optional($p->created_at)->format('H:i'),
+                'keluhan' => optional($p->kajianAwal)->keluhan ?? '-',
+                'status'  => $p->status,
+            ];
+        });
 
-        // Antrian hari ini (yang belum ada diagnosis)
-        $jumlahAntrian = KajianAwal::whereDate('created_at', $today)
-            ->whereNull('diagnosis')
-            ->count();
-
-        // Daftar pasien hari ini
-        $daftarPasien = KajianAwal::with('pendaftaran.pasien')
-            ->whereDate('created_at', $today)
-            ->latest()
-            ->limit(5)
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'nomor_rm' => $item->nomor_rekam_medis ?? '-',
-                    'nama' => $item->pendaftaran->pasien->nama ?? '-',
-                    'jam' => $item->created_at->format('H:i'),
-                    'keluhan' => $item->keluhan ?? '-',
-                    'status' => $item->diagnosis ? 'Selesai' : ($item->diagnosis === null ? 'Menunggu' : 'Sedang dilayani'),
-                ];
-            });
+        $counts = [
+            'antrian'         => Pendaftaran::where('dokter_id', $dokterId)
+                                    ->whereDate('tanggal_registrasi', $today)
+                                    ->where('status', 'Dalam Perawatan')->count(),
+            'pasien_hari_ini' => Pendaftaran::where('dokter_id', $dokterId)
+                                    ->whereDate('tanggal_registrasi', $today)->count(),
+            'tidak_hadir'     => Pendaftaran::where('dokter_id', $dokterId)
+                                    ->whereDate('tanggal_registrasi', $today)
+                                    ->where('status', 'Tidak Hadir')->count(),
+        ];
 
         return response()->json([
-            'hari_ini' => $jumlahPasienHariIni,
-            'total_bulan_ini' => $totalPasienBulanIni,
-            'konsultasi' => $jumlahKonsultasiHariIni,
-            'antrian' => $jumlahAntrian,
-            'pasien' => $daftarPasien,
+            'status' => 'ok',
+            'today'  => $today,
+            'rows'   => $rows,
+            'counts' => $counts,
         ]);
     }
 }
