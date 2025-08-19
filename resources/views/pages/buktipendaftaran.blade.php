@@ -16,7 +16,7 @@
                             <span class="mr-2"><a href="{{ url('/') }}">Home</a></span>
                             <span class="mr-2"><a href="{{ route('bukti.pendaftaran') }}">Bukti Pendaftaran</a></span>
                         </p>
-                        <h1 class="mb-3">Cek Antrian</h1>
+                        <h1 class="mb-3">Bukti Pendaftaran</h1>
                     </div>
                 </div>
             </div>
