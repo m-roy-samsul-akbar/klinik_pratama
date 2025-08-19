@@ -40,14 +40,25 @@
             <div id="formPasienBaru" style="display:none">
                 <h4 class="section-title">Data Pasien Baru</h4>
 
-                <div class="form-group"><label>Nama</label><input type="text" name="nama" placeholder="Nama Lengkap">
+                <div class="form-group">
+                    <label>Nama</label>
+                    <input type="text" name="nama" placeholder="Nama Lengkap">
                 </div>
-                <div class="form-group"><label>NIK</label><input type="text" name="nik" maxlength="16"
-                        placeholder="16 digit"></div>
 
-                <div class="form-group"><label>Tempat Lahir</label><input type="text" name="tempat_lahir"
-                        placeholder="Tempat Lahir"></div>
-                <div class="form-group"><label>Tanggal Lahir</label><input type="date" name="tanggal_lahir"></div>
+                <div class="form-group">
+                    <label>NIK</label>
+                    <input type="text" name="nik" maxlength="16" placeholder="16 digit">
+                </div>
+
+                <div class="form-group">
+                    <label>Tempat Lahir</label>
+                    <input type="text" name="tempat_lahir" placeholder="Tempat Lahir">
+                </div>
+
+                <div class="form-group">
+                    <label>Tanggal Lahir</label>
+                    <input type="date" name="tanggal_lahir">
+                </div>
 
                 <div class="form-group">
                     <label>Jenis Kelamin</label>
@@ -57,9 +68,14 @@
                     </div>
                 </div>
 
-                <div class="form-group"><label>Nama Ayah</label><input type="text" name="nama_ayah"
-                        placeholder="Nama Ayah"></div>
-                <div class="form-group"><label>Nama Ibu</label><input type="text" name="nama_ibu" placeholder="Nama Ibu">
+                <div class="form-group">
+                    <label>Nama Ayah</label>
+                    <input type="text" name="nama_ayah" placeholder="Nama Ayah">
+                </div>
+
+                <div class="form-group">
+                    <label>Nama Ibu</label>
+                    <input type="text" name="nama_ibu" placeholder="Nama Ibu">
                 </div>
 
                 <div class="form-group">
@@ -75,8 +91,10 @@
                     </select>
                 </div>
 
-                <div class="form-group"><label>Alamat</label><input type="text" name="alamat"
-                        placeholder="Alamat lengkap"></div>
+                <div class="form-group">
+                    <label>Alamat</label>
+                    <input type="text" name="alamat" placeholder="Alamat lengkap">
+                </div>
 
                 <div class="form-group">
                     <label>Pendidikan</label>
@@ -134,10 +152,15 @@
                     </select>
                 </div>
 
-                <div class="form-group"><label>Nama Penanggung Jawab</label><input type="text" name="penanggung_nama"
-                        placeholder="Nama Penanggung Jawab"></div>
-                <div class="form-group"><label>Alamat Penanggung</label><input type="text" name="penanggung_alamat"
-                        placeholder="Alamat"></div>
+                <div class="form-group">
+                    <label>Nama Penanggung Jawab</label>
+                    <input type="text" name="penanggung_nama" placeholder="Nama Penanggung Jawab">
+                </div>
+
+                <div class="form-group">
+                    <label>Alamat Penanggung</label>
+                    <input type="text" name="penanggung_alamat" placeholder="Alamat">
+                </div>
 
                 <div class="form-group">
                     <label>Pekerjaan Penanggung</label>
@@ -186,8 +209,11 @@
                     </select>
                 </div>
 
-                <div class="form-group"><label>No. WhatsApp</label><input type="text" name="no_whatsapp"
-                        id="no_whatsapp" placeholder="Contoh: 081234567890 / 6281234567890"></div>
+                <div class="form-group">
+                    <label>No. WhatsApp</label>
+                    <input type="text" name="no_whatsapp" id="no_whatsapp"
+                        placeholder="Contoh: 081234567890 / 6281234567890">
+                </div>
             </div>
 
             {{-- Pasien Lama (dengan tombol Cek Data Pasien) --}}
@@ -206,6 +232,7 @@
                 </div>
 
                 <div class="form-group" style="margin-top:.5rem">
+                    {{-- gunakan endpoint publik agar tidak kena redirect login --}}
                     <button type="button" id="btnCekPasienLama" class="btn-cek-data"
                         data-url="{{ route('api.pasien.cek') }}">
                         Cek Data Pasien
@@ -246,8 +273,10 @@
                     </select>
                 </div>
 
-                <div class="form-group"><label>Jam Praktek</label><input type="text" id="jam_lama" readonly
-                        placeholder="--,--"></div>
+                <div class="form-group">
+                    <label>Jam Praktek</label>
+                    <input type="text" id="jam_lama" readonly placeholder="--,--">
+                </div>
 
                 <div class="form-group">
                     <label for="tanggal_registrasi_lama">Tanggal Registrasi</label>
@@ -273,8 +302,10 @@
                     </select>
                 </div>
 
-                <div class="form-group"><label>Jam Praktek</label><input type="text" id="jam_baru" readonly
-                        placeholder="--,--"></div>
+                <div class="form-group">
+                    <label>Jam Praktek</label>
+                    <input type="text" id="jam_baru" readonly placeholder="--,--">
+                </div>
 
                 <div class="form-group">
                     <label for="tanggal_registrasi_baru">Tanggal Registrasi</label>
@@ -298,8 +329,9 @@
                 <label for="whatsapp">Nomor WhatsApp </label>
                 <input id="whatsapp" type="tel" name="whatsapp" inputmode="tel" autocomplete="tel"
                     placeholder="0812xxxxxxx atau +62812xxxxxxx" class="form-control">
-                <small class="text-muted">Isi nomer whatsapp untuk mendapatkan <strong>nomer antrian</strong> dan bukti
-                    pendaftaran</small>
+                <small class="text-muted">
+                    Isi nomer whatsapp untuk mendapatkan <strong>nomer antrian</strong> dan bukti pendaftaran
+                </small>
             </div>
 
             <div class="checkbox-group checkbox-sm"
@@ -317,8 +349,8 @@
         {{-- STEP 4: REVIEW --}}
         <section id="step4" class="form-step" style="display:none">
             <h3>REVIEW DATA & KONFIRMASI</h3>
-            <p class="text-muted" style="margin-bottom:1rem">Periksa kembali data Anda. Jika sudah benar, tekan
-                <strong>Kirim</strong>.
+            <p class="text-muted" style="margin-bottom:1rem">
+                Periksa kembali data Anda. Jika sudah benar, tekan <strong>Kirim</strong>.
             </p>
 
             <div class="preview-grid">
@@ -337,6 +369,7 @@
                         <li><strong>Status Kawin:</strong> <span data-preview="status"></span></li>
                     </ul>
                 </div>
+
                 <div class="preview-card">
                     <h4>Penanggung Jawab</h4>
                     <ul>
@@ -350,6 +383,7 @@
                         <li><strong>No. WA:</strong> <span data-preview="no_whatsapp"></span></li>
                     </ul>
                 </div>
+
                 <div class="preview-card">
                     <h4>Jadwal & Notifikasi</h4>
                     <ul>
@@ -372,9 +406,9 @@
 @endsection
 
 @push('scripts')
-    {{-- SweetAlert2 CDN --}}
+    {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    {{-- JS form --}}
+    {{-- JS form (sudah kita buat: assets/js/pendaftaran.js) --}}
     <script src="{{ asset('assets/js/pendaftaran.js') }}"></script>
 @endpush

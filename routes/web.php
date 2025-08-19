@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DokterController;
 use App\Http\Controllers\JadwalDokterController;
@@ -10,6 +12,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardDokterController;
 use App\Http\Controllers\SettingsController;
+use App\Models\Dokter;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,9 +34,7 @@ Route::get('/kontakkami', fn() => view('pages.kontakkami'))->name('kontakkami');
 Route::get('/perhatian', fn() => view('form.perhatian'))->name('perhatian');
 Route::get('/verifikasi', fn() => view('form.verifikasi'))->name('form.verifikasi');
 Route::get('/cekantrian', fn() => view('pages.cekantrian'))->name('cekantrian');
-Route::get('/buktipendaftaran', [PendaftaranController::class, 'buktipendaftaran'])
-    ->name('bukti.pendaftaran');
-
+Route::get('/buktipendaftaran', [PendaftaranController::class, 'buktipendaftaran'])->name('bukti.pendaftaran');
 
 // Antrian terkini (dipakai display publik)
 Route::get('/admin/pendaftaran/antrian-terkini', [PendaftaranController::class, 'getAntrianTerkini'])
@@ -41,8 +42,32 @@ Route::get('/admin/pendaftaran/antrian-terkini', [PendaftaranController::class, 
 
 // Submit pendaftaran dari FORM PUBLIK (verifikasi)
 Route::post('/pendaftaran', [PendaftaranController::class, 'store'])
-    ->name('registerPendaftaran.store'); // biar kompatibel dengan action lama
+    ->name('registerPendaftaran.store');
 
+/*
+|--------------------------------------------------------------------------
+| PUBLIC API (untuk form verifikasi – tidak perlu login)
+|--------------------------------------------------------------------------
+| Dipakai oleh assets/js/pendaftaran.js
+| Endpoint berbeda dari /admin/api/* agar tidak kena middleware auth.
+*/
+Route::prefix('api')->group(function () {
+    // List dokter berdasarkan spesialis (Umum/Gigi)
+    Route::get('/dokter/by-spesialis/{spesialis}', [PendaftaranController::class, 'getDokterBySpesialis'])
+        ->name('public.api.dokter.by-spesialis');
+
+    // Ambil jam praktek dokter (simple: field jam_praktek di tabel dokters)
+    Route::get('/dokter/jam-praktek', function (Request $r) {
+        $dokter = Dokter::find($r->dokter_id);
+        return response()->json([
+            'data' => ['jam_praktek' => $dokter->jam_praktek ?? null]
+        ]);
+    })->name('public.api.dokter.jam-praktek');
+
+    // Cek pasien lama berdasarkan NIK & tanggal lahir
+    Route::post('/pasien/cek', [PendaftaranController::class, 'cekPasienLama'])
+        ->name('api.pasien.cek'); // <-- dipakai di Blade verifikasi (data-url="{{ route('api.pasien.cek') }}")
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -67,12 +92,11 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Admin Only
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
-
         // Dashboard Admin
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chart-data');
@@ -92,7 +116,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/pendaftaran/{id}', [PendaftaranController::class, 'destroy'])->name('admin.pendaftaran.destroy');
         Route::get('/pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('admin.pendaftaran.show');
 
-        // Tandai pasien TIDAK HADIR (amankan di admin)
+        // Tandai pasien TIDAK HADIR
         Route::post('/pendaftaran/tidak-hadir', [PendaftaranController::class, 'tidakHadir'])
             ->name('pasien.tidak_hadir');
 
@@ -101,12 +125,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/dataantrian/panggil/{id}', [PendaftaranController::class, 'panggilPasien'])
             ->name('antrian.panggil');
 
-        // API AJAX (Admin)
+        // API AJAX (khusus halaman admin)
         Route::get('/api/dokter/by-spesialis/{spesialis}', [PendaftaranController::class, 'getDokterBySpesialis'])
             ->name('admin.api.dokter.by-spesialis');
 
-        Route::get('/api/dokter/jam-praktek', function (Illuminate\Http\Request $r) {
-            $dokter = \App\Models\Dokter::find($r->dokter_id);
+        Route::get('/api/dokter/jam-praktek', function (Request $r) {
+            $dokter = Dokter::find($r->dokter_id);
             return response()->json(['data' => ['jam_praktek' => $dokter->jam_praktek ?? null]]);
         })->name('admin.api.dokter.jam-praktek');
 
@@ -122,36 +146,32 @@ Route::middleware(['auth'])->group(function () {
         // Kajian awal (perawat/admin melakukan input awal)
         Route::post('/kajian-awal', [PendaftaranController::class, 'simpanKajianAwal'])->name('kajian-awal.store');
 
-        // Data pasien & rekam medis (tampilan admin)
+        // Data pasien & rekam medis
         Route::get('/datapasien', [PendaftaranController::class, 'dataPasien'])->name('admin.datapasien');
 
         // Pengaturan admin (static view)
         Route::get('/pengaturan', fn() => view('admin.pengaturan'))->name('admin.pengaturan');
     });
 
-    Route::post('/admin/api/pasien/cek', [PendaftaranController::class, 'cekPasienLama'])
-        ->name('api.pasien.cek');
-
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Dokter Only
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
     Route::middleware(['role:dokter'])->prefix('dokter')->group(function () {
-
         // Dashboard Dokter
         Route::get('/dashboard', [DashboardDokterController::class, 'index'])->name('dokter.dashboard');
         Route::get('/dashboard/data', [DashboardDokterController::class, 'getRealtimeData'])->name('dashboard.realtime');
-        // di dalam Route::middleware(['role:dokter'])->prefix('dokter')->group(function () {
-        Route::get('/pengaturan', [SettingsController::class, 'index'])
-            ->name('dokter.pengaturan');
+
+        // Pengaturan (pakai halaman yang sama)
+        Route::get('/pengaturan', [SettingsController::class, 'index'])->name('dokter.pengaturan');
 
         // Laporan Dokter
         Route::get('/laporan', [LaporanController::class, 'index'])->name('dokter.laporan');
         Route::get('/laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
 
-        // Kajian & Rekam Medis (untuk dokter)
+        // Kajian & Rekam Medis
         Route::get('/kajian-awal', [KajianController::class, 'kajianAwalPasien'])->name('dokter.kajian.index');
         Route::post('/kajian-awal', [KajianController::class, 'simpanDiagnosis'])->name('dokter.kajian.update');
 
